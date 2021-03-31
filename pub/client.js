@@ -51,13 +51,21 @@ if (isCanvasSupported()) {
 			erasePlayer(player){
 				//Set font size to ensure text measurements are correct
 				ctx.font = "20px Courier New";
+
 				//Clear a rectangle covering the player's former position
-				ctx.clearRect(player.x-Math.max(((ctx.measureText(player.name).width)+10)/2, 30), player.y-30, Math.max((ctx.measureText(player.name).width)+10, 60), 80);
-				for(let player2 of Object.keys(this.playerList)){
-					//Redraw any players within the rectangle of destruction
-					if(this.playerList[player2] != player){
-						if(Math.abs(this.playerList[player2].x - player.x) < Math.max((ctx.measureText(player.name).width), 60) || Math.abs(this.playerList[player2].y - player.y) < 80)
+				ctx.clearRect(player.x-Math.max(((ctx.measureText(player.name).width)+25)/2, 40), player.y-40, Math.max((ctx.measureText(player.name).width)+25, 80), 90);
+				
+				// Need to redraw any players within the rectangle of destruction
+				for(let player2 of Object.keys(this.playerList)){	
+					if(this.playerList[player2].name != player.name){	//Don't redraw the player that was just erased 
+						//Compute difference in coordinates
+						let xDiff = Math.abs(this.playerList[player2].x - player.x);
+						let yDiff = Math.abs(this.playerList[player2].y - player.y);
+
+						//If this player is too close to the one that was erased, redraw
+						if(xDiff < Math.max((ctx.measureText(player.name).width)+25, 80) && yDiff < 90){
 							this.drawPlayer(this.playerList[player2]);
+						}
 					}
 				}
 			},

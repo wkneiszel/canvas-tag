@@ -30,10 +30,10 @@ var keys = {"h": [], "v": []};
 var right = true;
 function horizontalBotMove(){
 	if(right){
-		players["h"].x += 2;
+		players["h"].x += 10;
 	}
 	else{
-		players["h"].x -= 2;
+		players["h"].x -= 10;
 	}
 	if(players["h"].x > 700 || players["h"].x < 100)
 		right = !right;
@@ -46,10 +46,10 @@ function horizontalBotMove(){
 var down = true;
 function verticalBotMove(){
 	if(down){
-		players["v"].y += 2;
+		players["v"].y += 10;
 	}
 	else{
-		players["v"].y -= 2;
+		players["v"].y -= 10;
 	}
 	if(players["v"].y > 700 || players["v"].y < 100)
 		down = !down;
@@ -63,19 +63,19 @@ function playersMove(){
 	for(let player of Object.keys(players)){
 		let changed = false;
 		if(keys[player].includes(87)){
-			players[player].y -= 2;
+			players[player].y -= 10;
 			changed = true;
 		}
 		if(keys[player].includes(65)){
-			players[player].x -= 2;
+			players[player].x -= 10;
 			changed = true;
 		}
 		if(keys[player].includes(83)){
-			players[player].y += 2;
+			players[player].y += 10;
 			changed = true;
 		}
 		if(keys[player].includes(68)){
-			players[player].x += 2;
+			players[player].x += 10;
 			changed = true;
 		}
 		if(changed){
@@ -93,7 +93,7 @@ setInterval(
 		horizontalBotMove();
 		verticalBotMove();
 		playersMove();
-	},10);
+	},50);
 
 //Every time a client connects (visits the page) this function(socket) {...} gets executed.
 //The socket is a different object each time a new client connects.
@@ -104,8 +104,8 @@ io.on("connection", function(socket) {
 		keys[socket.id] = [];
 		players[socket.id] = {
 			name: dataFromClient.playerName,
-			x: Math.floor(Math.random() * 100)+100,
-			y: Math.floor(Math.random() * 100)+100,
+			x: Math.floor(Math.random() * 600)+100,
+			y: Math.floor(Math.random() * 600)+100,
 			it: false
 		};
 		socket.emit("allPlayers", players)
