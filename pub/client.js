@@ -21,6 +21,7 @@ if (isCanvasSupported()) {
 		data() {
 			return {
 				playerList: [],
+				keys: [],
 				playerName: null,
 				tempPlayerName: null,
 			}
@@ -51,7 +52,7 @@ if (isCanvasSupported()) {
 				//Set font size to ensure text measurements are correct
 				ctx.font = "20px Courier New";
 				//Clear a rectangle covering the player's former position
-				ctx.clearRect(player.x-Math.max((ctx.measureText(player.name).width)/2, 30), player.y-30, Math.max((ctx.measureText(player.name).width), 60), 80);
+				ctx.clearRect(player.x-Math.max(((ctx.measureText(player.name).width)+10)/2, 30), player.y-30, Math.max((ctx.measureText(player.name).width)+10, 60), 80);
 				for(let player2 of Object.keys(this.playerList)){
 					//Redraw any players within the rectangle of destruction
 					if(this.playerList[player2] != player){
@@ -66,8 +67,8 @@ if (isCanvasSupported()) {
 				}
 			},
 			updatePlayer(dataFromServer){
-				console.log(dataFromServer);
 				this.playerList[dataFromServer.index] = dataFromServer.data;
+				this.erasePlayer(dataFromServer.data);
 				this.drawPlayer(dataFromServer.data);
 			},
 			logIn(){
@@ -85,6 +86,20 @@ if (isCanvasSupported()) {
 			removePlayer(player){
 				this.erasePlayer(this.playerList[player]);
 				delete this.playerList[player];
+			},
+			keyDown(keyCode){
+				if(this.keys.indexOf(keyCode) == -1)
+				{
+					this.keys.push(keyCode);
+					socket.emit("keyEvent", this.keys);
+					console.log(this.keys);
+				}
+			},
+			keyUp(keyCode){
+				let i = this.keys.indexOf(keyCode);
+				this.keys.splice(i, 1);
+				socket.emit("keyEvent", this.keys);
+				console.log(this.keys);
 			}
 		},
 		computed: {
@@ -93,6 +108,14 @@ if (isCanvasSupported()) {
 		mounted(){
 			cvs = document.getElementById("playfield");
 			ctx = cvs.getContext('2d');
+ 
+			// from: https://forum.vuejs.org/t/capture-keypress-for-all-keys/14560
+			window.addEventListener("keydown", function(e) {
+				this.keyDown(e.keyCode);
+			}.bind(this));
+			window.addEventListener("keyup", function(e) {
+				this.keyUp(e.keyCode);
+			}.bind(this));
 		}
 	};
 
