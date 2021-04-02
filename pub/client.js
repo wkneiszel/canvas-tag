@@ -27,6 +27,7 @@ if (isCanvasSupported()) {
 			}
 		},
 		methods: {
+			//Draws the player sprite and name on the canvas
 			drawPlayer(player){
 				if(player.it)
 					ctx.fillStyle = "green";
@@ -48,6 +49,9 @@ if (isCanvasSupported()) {
 				ctx.strokeText(player.name, player.x - (ctx.measureText(player.name).width/2), player.y + 35);
 				ctx.fillText(player.name, player.x - (ctx.measureText(player.name).width/2), player.y + 35);
 			},
+			//Erases a player, ensures that nearby characters are redrawn. An alternative to using multiple layers or clearing the whole canvas
+			//I don't think this is any more efficient than clearing the whole canvas, in fact, it is probably worse in terms of efficiency
+			//But it seemed like an interesting challenge
 			erasePlayer(player){
 				//Set font size to ensure text measurements are correct
 				ctx.font = "20px Courier New";
@@ -95,6 +99,8 @@ if (isCanvasSupported()) {
 				this.erasePlayer(this.playerList[player]);
 				delete this.playerList[player];
 			},
+			
+			//Keep server-side keyboard state updated
 			keyDown(keyCode){
 				if(this.keys.indexOf(keyCode) == -1)
 				{
@@ -111,7 +117,15 @@ if (isCanvasSupported()) {
 			}
 		},
 		computed: {
-
+			//Returns the name of the player who is it
+			it(){
+				for(let player of Object.keys(this.playerList)){	
+					if(this.playerList[player].it){
+						return this.playerList[player].name;
+					}
+				}
+				return "Nobody";
+			}
 		},
 		mounted(){
 			cvs = document.getElementById("playfield");
@@ -129,6 +143,7 @@ if (isCanvasSupported()) {
 
 	var app = Vue.createApp(vm).mount("#main");
 
+	//Set up handlers for socket events
 	socket.on("updatePlayer", function(dataFromServer){
 		app.updatePlayer(dataFromServer);
 	});
