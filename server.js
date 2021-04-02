@@ -102,6 +102,19 @@ function playersMove(){
 			changed = true;
 		}
 		if(changed){
+			//Screen wrap (PacMan style)
+			if(players[player].x > 900){
+				players[player].x = -100;
+			}
+			if(players[player].x < -100){
+				players[player].x = 900;
+			}
+			if(players[player].y > 900){
+				players[player].y = -100;
+			}
+			if(players[player].y < -100){
+				players[player].y = 900;
+			}
 			io.emit("updatePlayer", {
 				index: player,
 				data: players[player]
@@ -202,6 +215,9 @@ io.on("connection", function(socket) {
 	//When a player leaves, we need to tell everyone
 	//Also clears out entries for that player in players, keys, and collisions object
 	socket.on("disconnect", function() {
+		if(!players[socket.id]){
+			return;
+		}
 		//We cannot allow someone to run away with "it", as this would kill the game. 
 		//Assign it to a random player. Code based on https://stackoverflow.com/questions/2532218/pick-random-property-from-a-javascript-object
 		let theyWereIt = false;
