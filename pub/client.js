@@ -40,8 +40,8 @@ if (isCanvasSupported()) {
 				ctx.stroke();
 				ctx.fill();
 				ctx.lineWidth = 2;
-				ctx.font = "20px Courier New";
-				ctx.fillStyle = "black"
+				ctx.font = "20px Segoe UI";
+				ctx.fillStyle = "white"
 				if(player.name == this.playerName)
 				{
 					ctx.fillStyle = "red";

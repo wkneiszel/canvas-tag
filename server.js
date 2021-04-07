@@ -103,17 +103,17 @@ function playersMove(){
 		}
 		if(changed){
 			//Screen wrap (PacMan style)
-			if(players[player].x > 900){
-				players[player].x = -100;
+			if(players[player].x > 850){
+				players[player].x = -50;
 			}
-			if(players[player].x < -100){
-				players[player].x = 900;
+			if(players[player].x < -50){
+				players[player].x = 850;
 			}
-			if(players[player].y > 900){
-				players[player].y = -100;
+			if(players[player].y > 850){
+				players[player].y = -50;
 			}
-			if(players[player].y < -100){
-				players[player].y = 900;
+			if(players[player].y < -50){
+				players[player].y = 850;
 			}
 			io.emit("updatePlayer", {
 				index: player,
@@ -176,14 +176,27 @@ function calculateCollisions(){
 	}
 }
 
+var botActions = function(){
+	horizontalBotMove();
+	verticalBotMove();
+};
+
 //Tick function for movement and other regular calculations
 setInterval(
 	function(){ 
-		horizontalBotMove();
-		verticalBotMove();
+		botActions();
 		playersMove();
 		calculateCollisions();
 	},50);
+
+function removeBots(){
+	players = {};
+	collisions = {};
+	keys = {};
+	botActions = function(){};
+}
+
+removeBots();
 
 //Every time a client connects (visits the page) this function(socket) {...} gets executed.
 //The socket is a different object each time a new client connects.
@@ -192,13 +205,18 @@ io.on("connection", function(socket) {
 
 	//When a new client logs in, inform everyone, and add a new entry in the keys, collisions, and players objects
 	socket.on("logIn", function(dataFromClient){
+		//first player to connect should be it 
+		let newPlayerIt = false;
+		if(Object.keys(players).length == 0) {
+			newPlayerIt = true;
+		}
 		keys[socket.id] = [];
 		collisions[socket.id] = [];
 		players[socket.id] = {
 			name: dataFromClient.playerName,
 			x: Math.floor(Math.random() * 600)+100,
 			y: Math.floor(Math.random() * 600)+100,
-			it: false
+			it: newPlayerIt
 		};
 		socket.emit("allPlayers", players)
 		io.emit("updatePlayer", {
