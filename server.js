@@ -7,23 +7,10 @@ var io = socketio(server);
 app.use(express.static("pub"));
 
 //Object which holds the data for each player. The index is the player's socket id, except in the case of the bots
-var players = {
-	"h": {
-		name: "horizontalBot",
-		x: 200,
-		y: 400,
-		it: true
-	},
-	"v": {
-		name: "verticalBot",
-		x: 400,
-		y: 200,
-		it: false
-	}
-};
+var players = {};
 
 //Object which holds an array of which keys are pressed by each client
-var keys = {"h": [], "v": []};
+var keys = {};
 
 //HorizontalBot code
 var right = true;
@@ -131,7 +118,7 @@ function detectCollision(player1, player2){
 //Calculate tagging. Need to detect when players first collide, then flip who is it
 //It is important not to flip who is it on every tick where two players are overlapping, because they will be 
 //In contact for several ticks, which would mean some uncertainty when it comes to who leaves the encounter it
-var collisions = {"h": [], "v": []};
+var collisions = {};
 function calculateCollisions(){
 	for(let player1 of Object.keys(players)){
 		for(let player2 of Object.keys(players)){
@@ -176,10 +163,7 @@ function calculateCollisions(){
 	}
 }
 
-var botActions = function(){
-	horizontalBotMove();
-	verticalBotMove();
-};
+var botActions = function(){};
 
 //Tick function for movement and other regular calculations
 setInterval(
@@ -189,14 +173,32 @@ setInterval(
 		calculateCollisions();
 	},50);
 
-function removeBots(){
-	players = {};
-	collisions = {};
-	keys = {};
-	botActions = function(){};
+//Adds bots to the game
+function addBots(){
+	players = {
+		"h": {
+			name: "horizontalBot",
+			x: 200,
+			y: 400,
+			it: true
+		},
+		"v": {
+			name: "verticalBot",
+			x: 400,
+			y: 200,
+			it: false
+		}
+	};
+	collisions = {"h": [], "v": []};
+	keys = {"h": [], "v": []};
+	botActions = function(){
+		horizontalBotMove();
+		verticalBotMove();
+	};
 }
 
-removeBots();
+//Note: if you call this function, you will get bots
+addBots();
 
 //Every time a client connects (visits the page) this function(socket) {...} gets executed.
 //The socket is a different object each time a new client connects.
