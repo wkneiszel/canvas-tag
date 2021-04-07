@@ -198,7 +198,7 @@ function addBots(){
 }
 
 //Note: if you call this function, you will get bots
-addBots();
+//addBots();
 
 //Every time a client connects (visits the page) this function(socket) {...} gets executed.
 //The socket is a different object each time a new client connects.
@@ -235,11 +235,12 @@ io.on("connection", function(socket) {
 	//When a player leaves, we need to tell everyone
 	//Also clears out entries for that player in players, keys, and collisions object
 	socket.on("disconnect", function() {
+		//If they disconnect before joining the game, no need to clear any data
 		if(!players[socket.id]){
 			return;
 		}
 		console.log("Somebody disconnected.");
-		
+
 		//We cannot allow someone to run away with "it", as this would kill the game. 
 		let theyWereIt = false;
 		if(players[socket.id].it){
@@ -248,6 +249,12 @@ io.on("connection", function(socket) {
 		delete players[socket.id];
 		delete keys[socket.id];
 		delete collisions[socket.id];
+
+		//If the last player disconnects, nobody is left to make it
+		if(Object.keys(players).length == 0) {
+			return;
+		}
+
 		if(theyWereIt){
 			//Assign it to a random player. Code based on https://stackoverflow.com/questions/2532218/pick-random-property-from-a-javascript-object
 			var indices = Object.keys(players);
