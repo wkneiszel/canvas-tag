@@ -49,30 +49,6 @@ if (isCanvasSupported()) {
 				ctx.strokeText(player.name, player.x - (ctx.measureText(player.name).width/2), player.y + 35);
 				ctx.fillText(player.name, player.x - (ctx.measureText(player.name).width/2), player.y + 35);
 			},
-			//Erases a player, ensures that nearby characters are redrawn. An alternative to using multiple layers or clearing the whole canvas
-			//I don't think this is any more efficient than clearing the whole canvas, in fact, it is probably worse in terms of efficiency
-			//But it seemed like an interesting challenge
-			erasePlayer(player){
-				//Set font size to ensure text measurements are correct
-				ctx.font = "20px Courier New";
-
-				//Clear a rectangle covering the player's former position
-				ctx.clearRect(player.x-Math.max(((ctx.measureText(player.name).width)+25)/2, 40), player.y-40, Math.max((ctx.measureText(player.name).width)+25, 80), 90);
-				
-				// Need to redraw any players within the rectangle of destruction
-				for(let player2 of Object.keys(this.playerList)){	
-					if(this.playerList[player2].name != player.name){	//Don't redraw the player that was just erased 
-						//Compute difference in coordinates
-						let xDiff = Math.abs(this.playerList[player2].x - player.x);
-						let yDiff = Math.abs(this.playerList[player2].y - player.y);
-
-						//If this player is too close to the one that was erased, redraw
-						if(xDiff < Math.max((ctx.measureText(player.name).width)+25, 80) && yDiff < 90){
-							this.drawPlayer(this.playerList[player2]);
-						}
-					}
-				}
-			},
 			drawAllPlayers(){
 				for(let player of Object.keys(this.playerList)){
 					this.drawPlayer(this.playerList[player]);
@@ -80,8 +56,8 @@ if (isCanvasSupported()) {
 			},
 			updatePlayer(dataFromServer){
 				this.playerList[dataFromServer.index] = dataFromServer.data;
-				this.erasePlayer(dataFromServer.data);
-				this.drawPlayer(dataFromServer.data);
+				ctx.clearRect(0, 0, cvs.width, cvs.height);
+				this.drawAllPlayers();
 			},
 			logIn(){
 				if(this.tempPlayerName){
@@ -92,12 +68,14 @@ if (isCanvasSupported()) {
 				}	
 			},
 			setAllPlayers(players){
+				ctx.clearRect(0, 0, cvs.width, cvs.height);
 				this.playerList = players;
 				this.drawAllPlayers();
 			},
 			removePlayer(player){
-				this.erasePlayer(this.playerList[player]);
+				ctx.clearRect(0, 0, cvs.width, cvs.height);
 				delete this.playerList[player];
+				this.drawAllPlayers();
 			},
 			
 			//Keep server-side keyboard state updated

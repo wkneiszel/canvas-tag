@@ -218,8 +218,9 @@ io.on("connection", function(socket) {
 		if(!players[socket.id]){
 			return;
 		}
+		console.log("Somebody disconnected.");
+		
 		//We cannot allow someone to run away with "it", as this would kill the game. 
-		//Assign it to a random player. Code based on https://stackoverflow.com/questions/2532218/pick-random-property-from-a-javascript-object
 		let theyWereIt = false;
 		if(players[socket.id].it){
 			theyWereIt = true;
@@ -228,13 +229,14 @@ io.on("connection", function(socket) {
 		delete keys[socket.id];
 		delete collisions[socket.id];
 		if(theyWereIt){
+			//Assign it to a random player. Code based on https://stackoverflow.com/questions/2532218/pick-random-property-from-a-javascript-object
 			var indices = Object.keys(players);
 			var newIt = indices[indices.length * Math.random() << 0];
 			console.log(players[newIt].name + " is it now.");
 			players[newIt].it = true;
 		}
-		io.emit("playerLeft", socket.id);
-		console.log("Somebody disconnected.");
+		//Need to emit all players to ensure that clients update who is it
+		io.emit("allPlayers", players)
 	});
 });
 
