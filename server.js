@@ -220,6 +220,9 @@ io.on("connection", function(socket) {
 			y: Math.floor(Math.random() * 600)+100,
 			it: newPlayerIt
 		};
+
+		socket.emit("yourSocket", socket.id);
+		
 		socket.emit("allPlayers", players)
 		io.emit("updatePlayer", {
 			index: socket.id,

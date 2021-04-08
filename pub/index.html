@@ -14,6 +14,12 @@
 			<canvas id="playfield" width="800" height="800">
 				Sorry, your browser doesn't support canvas.
 			</canvas>
+			<div id="playerList">
+				<h2>Players Online:</h2>
+				<ul>
+					<li v-for="player in playerList" key="player.name">{{player.name}}</li>
+				</ul>
+			</div>
 		</div>
 		<div v-bind:hidden="playerName != null">
 			<h1>Welcome to Tag!</h1>

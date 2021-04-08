@@ -24,11 +24,12 @@ if (isCanvasSupported()) {
 				keys: [],
 				playerName: null,
 				tempPlayerName: null,
+				myId: null,
 			}
 		},
 		methods: {
 			//Draws the player sprite and name on the canvas
-			drawPlayer(player){
+			drawPlayer(player, playerId){
 				if(player.it)
 					ctx.fillStyle = "green";
 				else
@@ -42,7 +43,7 @@ if (isCanvasSupported()) {
 				ctx.lineWidth = 2;
 				ctx.font = "20px Segoe UI";
 				ctx.fillStyle = "white"
-				if(player.name == this.playerName)
+				if(playerId == this.myId)
 				{
 					ctx.fillStyle = "red";
 				}
@@ -51,7 +52,7 @@ if (isCanvasSupported()) {
 			},
 			drawAllPlayers(){
 				for(let player of Object.keys(this.playerList)){
-					this.drawPlayer(this.playerList[player]);
+					this.drawPlayer(this.playerList[player], player);
 				}
 			},
 			updatePlayer(dataFromServer){
@@ -92,6 +93,9 @@ if (isCanvasSupported()) {
 				this.keys.splice(i, 1);
 				socket.emit("keyEvent", this.keys);
 				console.log(this.keys);
+			},
+			setId(id){
+				this.myId = id;
 			}
 		},
 		computed: {
@@ -133,4 +137,8 @@ if (isCanvasSupported()) {
 	socket.on("playerLeft", function(dataFromServer){
 		app.removePlayer(dataFromServer);
 	});
+
+	socket.on("yourSocket", function(dataFromServer){
+		app.setId(dataFromServer);
+	})
 }
