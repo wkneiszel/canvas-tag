@@ -12,39 +12,9 @@ var players = {};
 //Object which holds an array of which keys are pressed by each client
 var keys = {};
 
-//HorizontalBot code
-var right = true;
-function horizontalBotMove(){
-	if(right){
-		players["h"].x += 10;
-	}
-	else{
-		players["h"].x -= 10;
-	}
-	if(players["h"].x > 700 || players["h"].x < 100)
-		right = !right;
-	io.emit("updatePlayer", {
-		index: "h",
-		data: players["h"]
-	});
-}
-
-//VerticalBot code
-var down = true;
-function verticalBotMove(){
-	if(down){
-		players["v"].y += 10;
-	}
-	else{
-		players["v"].y -= 10;
-	}
-	if(players["v"].y > 700 || players["v"].y < 100)
-		down = !down;
-	io.emit("updatePlayer", {
-		index: "v",
-		data: players["v"]
-	});
-}
+//Object which holds collisions between players. The key is each player's socket id, the value is an array of the socket ids of the 
+//players with whom they are in contact.
+var collisions = {};
 
 //Takes the array of keys pressed by the client and calculates their player's motion for this tick off of that
 //It is important to use the keypresses instead of simply getting the calculated movement or coordinates from the client
@@ -118,7 +88,6 @@ function detectCollision(player1, player2){
 //Calculate tagging. Need to detect when players first collide, then flip who is it
 //It is important not to flip who is it on every tick where two players are overlapping, because they will be 
 //In contact for several ticks, which would mean some uncertainty when it comes to who leaves the encounter it
-var collisions = {};
 function calculateCollisions(){
 	for(let player1 of Object.keys(players)){
 		for(let player2 of Object.keys(players)){
@@ -163,15 +132,42 @@ function calculateCollisions(){
 	}
 }
 
-var botActions = function(){};
+//HorizontalBot code
+var right = true;
+function horizontalBotMove(){
+	if(right){
+		players["h"].x += 10;
+	}
+	else{
+		players["h"].x -= 10;
+	}
+	if(players["h"].x > 700 || players["h"].x < 100)
+		right = !right;
+	io.emit("updatePlayer", {
+		index: "h",
+		data: players["h"]
+	});
+}
 
-//Tick function for movement and other regular calculations
-setInterval(
-	function(){ 
-		botActions();
-		playersMove();
-		calculateCollisions();
-	},50);
+//VerticalBot code
+var down = true;
+function verticalBotMove(){
+	if(down){
+		players["v"].y += 10;
+	}
+	else{
+		players["v"].y -= 10;
+	}
+	if(players["v"].y > 700 || players["v"].y < 100)
+		down = !down;
+	io.emit("updatePlayer", {
+		index: "v",
+		data: players["v"]
+	});
+}
+
+//Function which contains the actions to be taken by the bots each tick.
+var botActions = function(){};
 
 //Adds bots to the game
 function addBots(){
@@ -200,8 +196,15 @@ function addBots(){
 //Note: if you call this function, you will get bots
 //addBots();
 
-//Every time a client connects (visits the page) this function(socket) {...} gets executed.
-//The socket is a different object each time a new client connects.
+//Tick function for movement and other regular calculations
+setInterval(
+	function(){ 
+		botActions();
+		playersMove();
+		calculateCollisions();
+	},50);
+
+//Setting up Socket.Io for each new connection
 io.on("connection", function(socket) {
 	console.log("Somebody connected.");
 
@@ -212,6 +215,8 @@ io.on("connection", function(socket) {
 		if(Object.keys(players).length == 0) {
 			newPlayerIt = true;
 		}
+
+		//Add the new connection to keys, collisions, and players
 		keys[socket.id] = [];
 		collisions[socket.id] = [];
 		players[socket.id] = {
@@ -221,9 +226,13 @@ io.on("connection", function(socket) {
 			it: newPlayerIt
 		};
 
+		//Return the socket.id to the client (so they can tell which player is them)
 		socket.emit("yourSocket", socket.id);
 		
-		socket.emit("allPlayers", players)
+		//Send the new client all the players' data
+		socket.emit("allPlayers", players);
+
+		//Let everyone know somebody new is here
 		io.emit("updatePlayer", {
 			index: socket.id,
 			data: players[socket.id]
@@ -238,17 +247,20 @@ io.on("connection", function(socket) {
 	//When a player leaves, we need to tell everyone
 	//Also clears out entries for that player in players, keys, and collisions object
 	socket.on("disconnect", function() {
+		console.log("Somebody disconnected.");
+
 		//If they disconnect before joining the game, no need to clear any data
 		if(!players[socket.id]){
 			return;
 		}
-		console.log("Somebody disconnected.");
 
 		//We cannot allow someone to run away with "it", as this would kill the game. 
 		let theyWereIt = false;
 		if(players[socket.id].it){
 			theyWereIt = true;
 		}
+
+		//Remove the player from game data structures
 		delete players[socket.id];
 		delete keys[socket.id];
 		delete collisions[socket.id];
@@ -258,6 +270,7 @@ io.on("connection", function(socket) {
 			return;
 		}
 
+		//Otherwise, we should make a random player it if the player who left was it.
 		if(theyWereIt){
 			//Assign it to a random player. Code based on https://stackoverflow.com/questions/2532218/pick-random-property-from-a-javascript-object
 			var indices = Object.keys(players);
@@ -265,11 +278,11 @@ io.on("connection", function(socket) {
 			console.log(players[newIt].name + " is it now.");
 			players[newIt].it = true;
 		}
-		//Need to emit all players to ensure that clients update who is it
+
+		//Need to emit all players to ensure that clients update who is it. 
 		io.emit("allPlayers", players)
 	});
 });
-
 
 server.listen(80, function() {
 	console.log("Server with socket.io is ready.");

@@ -30,6 +30,7 @@ if (isCanvasSupported()) {
 		methods: {
 			//Draws the player sprite and name on the canvas
 			drawPlayer(player, playerId){
+				//Draw a circle
 				if(player.it)
 					ctx.fillStyle = "green";
 				else
@@ -40,6 +41,8 @@ if (isCanvasSupported()) {
 				ctx.arc(player.x, player.y, 20, 0, 2 * Math.PI);
 				ctx.stroke();
 				ctx.fill();
+
+				//Draw the player's name
 				ctx.lineWidth = 2;
 				ctx.font = "20px Segoe UI";
 				ctx.fillStyle = "white"
@@ -94,6 +97,8 @@ if (isCanvasSupported()) {
 				socket.emit("keyEvent", this.keys);
 				console.log(this.keys);
 			},
+
+			//We need to keep track of our socket id so we can display the client's character's name in red
 			setId(id){
 				this.myId = id;
 			}
@@ -113,7 +118,8 @@ if (isCanvasSupported()) {
 			cvs = document.getElementById("playfield");
 			ctx = cvs.getContext('2d');
  
-			// from: https://forum.vuejs.org/t/capture-keypress-for-all-keys/14560
+			//Set up key listeners for control
+			//from: https://forum.vuejs.org/t/capture-keypress-for-all-keys/14560
 			window.addEventListener("keydown", function(e) {
 				this.keyDown(e.keyCode);
 			}.bind(this));
@@ -132,10 +138,6 @@ if (isCanvasSupported()) {
 
 	socket.on("allPlayers", function(dataFromServer){
 		app.setAllPlayers(dataFromServer);
-	});
-
-	socket.on("playerLeft", function(dataFromServer){
-		app.removePlayer(dataFromServer);
 	});
 
 	socket.on("yourSocket", function(dataFromServer){
