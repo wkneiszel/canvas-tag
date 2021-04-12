@@ -168,7 +168,6 @@ function verticalBotMove(){
 }
 
 function tagsterMove(){
-	let closestPlayer = "";
 	let closestPlayerDistance = 1000;
 	let dx = 0;
 	let dy = 0;
