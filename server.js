@@ -1,3 +1,4 @@
+const { sign } = require("crypto");
 var express = require("express");
 var app = express();
 var http = require("http");
@@ -166,6 +167,82 @@ function verticalBotMove(){
 	});
 }
 
+function tagsterMove(){
+	let closestPlayer = "";
+	let closestPlayerDistance = 1000;
+	let dx = 0;
+	let dy = 0;
+
+	if(players["t"].it){	//Chase
+		for(let player of Object.keys(players)){
+			if(player == "t"){
+				continue;	
+			}
+
+			let distanceToPlayer = Math.sqrt(Math.pow(players[player].x - players["t"].x, 2) 
+											+ Math.pow(players[player].y - players["t"].y, 2));
+			if(distanceToPlayer < closestPlayerDistance){
+				closestPlayer = player;
+				closestPlayerDistance = distanceToPlayer;
+
+				//Calculate vector components for motion
+				let theta = Math.asin((players[player].y - players["t"].y)/distanceToPlayer);
+				dx = 5 * Math.cos(theta) * Math.sign(players[player].x - players["t"].x);
+				dy = 5 * Math.sin(theta);
+			}
+		}
+	
+		players["t"].x += dx;
+		players["t"].y += dy;
+	}
+	else{	//Flee
+		for(let player of Object.keys(players)){
+			if(!players[player].it || player == "t"){
+				continue;	
+			}
+
+			let distanceToPlayer = Math.sqrt(Math.pow(players[player].x - players["t"].x, 2) 
+											+ Math.pow(players[player].y - players["t"].y, 2));
+
+			closestPlayer = player;
+			closestPlayerDistance = distanceToPlayer;
+
+			//Calculate vector components for motion (unless distance is 0, because you need to divide by distance)
+			if(distanceToPlayer != 0){
+				let theta = Math.asin((players[player].y - players["t"].y)/distanceToPlayer);
+				dx = -5 * Math.cos(theta) * Math.sign(players[player].x - players["t"].x);
+				dy = -5 * Math.sin(theta);
+
+				if(players["t"].x > 0 && players["t"].x < 800)
+					players["t"].x += dx;
+				if(players["t"].y > 0 && players["t"].y < 800)
+					players["t"].y += dy;
+			}
+		}
+	}
+
+	//Screen wrap (PacMan style)
+	if(players["t"].x > 850){
+		players["t"].x = -50;
+	}
+	if(players["t"].x < -50){
+		players["t"].x = 850;
+	}
+	if(players["t"].y > 850){
+		players["t"].y = -50;
+	}
+	if(players["t"].y < -50){
+		players["t"].y = 850;
+	}
+
+	io.emit("updatePlayer", {
+		index: "t",
+		data: players["t"]
+	});
+
+	
+}
+
 //Function which contains the actions to be taken by the bots each tick.
 var botActions = function(){};
 
@@ -176,25 +253,32 @@ function addBots(){
 			name: "horizontalBot",
 			x: 200,
 			y: 400,
-			it: true
+			it: false
 		},
 		"v": {
 			name: "verticalBot",
 			x: 400,
 			y: 200,
 			it: false
+		},
+		"t": {
+			name: "The Tagster",
+			x: 400,
+			y: 400,
+			it: true
 		}
 	};
-	collisions = {"h": [], "v": []};
-	keys = {"h": [], "v": []};
+	collisions = {"h": [], "v": [], "t": []};
+	keys = {"h": [], "v": [], "t": []};
 	botActions = function(){
 		horizontalBotMove();
 		verticalBotMove();
+		tagsterMove();
 	};
 }
 
 //Note: if you call this function, you will get bots
-//addBots();
+addBots();
 
 //Tick function for movement and other regular calculations
 setInterval(
