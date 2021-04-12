@@ -204,9 +204,6 @@ function tagsterMove(){
 			let distanceToPlayer = Math.sqrt(Math.pow(players[player].x - players["t"].x, 2) 
 											+ Math.pow(players[player].y - players["t"].y, 2));
 
-			closestPlayer = player;
-			closestPlayerDistance = distanceToPlayer;
-
 			//Calculate vector components for motion (unless distance is 0, because you need to divide by distance)
 			if(distanceToPlayer != 0){
 				let theta = Math.asin((players[player].y - players["t"].y)/distanceToPlayer);
