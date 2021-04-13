@@ -244,7 +244,16 @@ function tagsterActions(){
 
 var tagsters = [];
 var tagsterCount = 0;
-var tagsterNames = ["Allen", "Marc", "Angelo", "Frederique", "Pasquale", "Guillermo", "Giuseppe", "Lorraine", "Hans", "Alberto", "Yolanda", "Rita", "Norman", "Glen", "Tina", "Gertrude", "Olga", "Pacman", "Helena", "Gwenda", "Astrud", "Astrid", "Norma", "Cool Phil", "The Alamo", "Patricia", "Edgardo", "Bartholomew"];
+var tagsterNames = ["Allen", "Marc", "Angelo", "Frederique", "Pasquale", "Guillermo", "Giuseppe", "Lorraine", "Hans", "Alberto", "Yolanda", 
+					"Rita", "Norman", "Glen", "Tina", "Gertrude", "Olga", "Pacman", "Helena", "Gwenda", "Astrud", "Astrid", "Norma", "Cool Phil", 
+					"The Alamo", "Patricia", "Edgardo", "Bartholomew", "Sven", "Larry", "Tony", "Glenda", "Gwen", "Justin", "Penelope", "Pete", 
+					"Earnest", "Jorge", "Madeline", "Ben", "Julieta", "Clark", "Bob", "Lucile", "Gordo", "Wallow", "Annie", "Jack", "Beth", "Chris",
+					"Danny", "Sandy", "Daisuke", "Ryugi", "Yoshi", "Paco", "Reina", "Logan", "Andy", "Stella", "Tangy", "Bugsly", "Cindy", "Mindy", 
+					"Scooter", "Jenny", "Brie", "Koko", "Dante", "Chester", "Chet", "Hilda", "Vlad", "Sergei", "Pavel", "Iakov", "Bjorn", "Tsubasa",
+					"Fritz", "Keiko", "Magnolia", "Daisy", "Rose", "Oliver", "Woody", "Lena", "Maximilian", "Felix", "Ahmed", "Esma", "Ida", "Bence",
+					"Mikael", "Noam", "Yosef", "Leonardo", "Ginevra", "Giulia", "Henrik", "Santiago", "Beatriz", "Viktoriya", "Artyom", "Hugo", "Mohamed",
+					"Mamadou", "Imene", "Fatima", "Mariam", "Enzo", "Davit", "Yusif", "Wei", "Amir-Ali", "Elie", "Rashid", "Honoka", "Odval", "Saoirse",
+					"Tao", "Hitomi", "Kyoko", "Chang", "Xiuying", "Asuka", "Hikari", "Sedol"];
 
 function addNewTagster(){
 	let tagsterId = tagsterCount++;
