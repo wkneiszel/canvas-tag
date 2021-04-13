@@ -199,8 +199,9 @@ function tagsterMove(socketId){
 				continue;	
 			}
 
-			let distanceToPlayer = Math.sqrt(Math.pow(players[player].x - players[socketId].x, 2) 
-											+ Math.pow(players[player].y - players[socketId].y, 2));
+			let xDiff = (players[player].x - players[socketId].x);
+			let yDiff = (players[player].y - players[socketId].y);
+			let distanceToPlayer = Math.sqrt(Math.pow(xDiff, 2) + Math.pow(yDiff, 2));
 
 			//Calculate vector components for motion (unless distance is 0, because you need to divide by distance)
 			if(distanceToPlayer != 0){
@@ -208,16 +209,14 @@ function tagsterMove(socketId){
 				dx = -6 * Math.cos(theta) * Math.sign(players[player].x - players[socketId].x);
 				dy = -6 * Math.sin(theta);
 
-				if(players[socketId].x > 0 && players[socketId].x < 800)
-					players[socketId].x += dx;
-				if(players[socketId].y > 0 && players[socketId].y < 800)
-					players[socketId].y += dy;
+				players[socketId].x += dx;
+				players[socketId].y += dy;
 			}
 		}
 	}
 
 	//Screen wrap (PacMan style)
-	if(players[socketId].x > 850){
+	if(players[socketId].x > 800){
 		players[socketId].x = -50;
 	}
 	if(players[socketId].x < -50){
