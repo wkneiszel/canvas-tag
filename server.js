@@ -167,88 +167,110 @@ function verticalBotMove(){
 	});
 }
 
-function tagsterMove(){
+function tagsterMove(socketId){
 	let closestPlayerDistance = 1000;
 	let dx = 0;
 	let dy = 0;
 
-	if(players["t"].it){	//Chase
+	if(players[socketId].it){	//Chase
 		for(let player of Object.keys(players)){
-			if(player == "t"){
+			if(player == socketId){
 				continue;	
 			}
 
-			let distanceToPlayer = Math.sqrt(Math.pow(players[player].x - players["t"].x, 2) 
-											+ Math.pow(players[player].y - players["t"].y, 2));
+			let distanceToPlayer = Math.sqrt(Math.pow(players[player].x - players[socketId].x, 2) 
+											+ Math.pow(players[player].y - players[socketId].y, 2));
 			if(distanceToPlayer < closestPlayerDistance){
 				closestPlayerDistance = distanceToPlayer;
 
 				//Calculate vector components for motion
-				let theta = Math.asin((players[player].y - players["t"].y)/distanceToPlayer);
-				dx = 5 * Math.cos(theta) * Math.sign(players[player].x - players["t"].x);
+				let theta = Math.asin((players[player].y - players[socketId].y)/distanceToPlayer);
+				dx = 5 * Math.cos(theta) * Math.sign(players[player].x - players[socketId].x);
 				dy = 5 * Math.sin(theta);
 			}
 		}
 	
-		players["t"].x += dx;
-		players["t"].y += dy;
+		players[socketId].x += dx;
+		players[socketId].y += dy;
 	}
 	else{	//Flee
 		for(let player of Object.keys(players)){
-			if(!players[player].it || player == "t"){
+			if(!players[player].it || player == socketId){
 				continue;	
 			}
 
-			let distanceToPlayer = Math.sqrt(Math.pow(players[player].x - players["t"].x, 2) 
-											+ Math.pow(players[player].y - players["t"].y, 2));
+			let distanceToPlayer = Math.sqrt(Math.pow(players[player].x - players[socketId].x, 2) 
+											+ Math.pow(players[player].y - players[socketId].y, 2));
 
 			//Calculate vector components for motion (unless distance is 0, because you need to divide by distance)
 			if(distanceToPlayer != 0){
-				let theta = Math.asin((players[player].y - players["t"].y)/distanceToPlayer);
-				dx = -5 * Math.cos(theta) * Math.sign(players[player].x - players["t"].x);
-				dy = -5 * Math.sin(theta);
+				let theta = Math.asin((players[player].y - players[socketId].y)/distanceToPlayer);
+				dx = -6 * Math.cos(theta) * Math.sign(players[player].x - players[socketId].x);
+				dy = -6 * Math.sin(theta);
 
-				if(players["t"].x > 0 && players["t"].x < 800)
-					players["t"].x += dx;
-				if(players["t"].y > 0 && players["t"].y < 800)
-					players["t"].y += dy;
+				if(players[socketId].x > 0 && players[socketId].x < 800)
+					players[socketId].x += dx;
+				if(players[socketId].y > 0 && players[socketId].y < 800)
+					players[socketId].y += dy;
 			}
 		}
 	}
 
 	//Screen wrap (PacMan style)
-	if(players["t"].x > 850){
-		players["t"].x = -50;
+	if(players[socketId].x > 850){
+		players[socketId].x = -50;
 	}
-	if(players["t"].x < -50){
-		players["t"].x = 850;
+	if(players[socketId].x < -50){
+		players[socketId].x = 850;
 	}
-	if(players["t"].y > 850){
-		players["t"].y = -50;
+	if(players[socketId].y > 850){
+		players[socketId].y = -50;
 	}
-	if(players["t"].y < -50){
-		players["t"].y = 850;
+	if(players[socketId].y < -50){
+		players[socketId].y = 850;
 	}
 
 	io.emit("updatePlayer", {
-		index: "t",
-		data: players["t"]
+		index: socketId,
+		data: players[socketId]
 	});
+}
 
-	
+function tagsterActions(){
+	for(let tagster of tagsters){
+		tagsterMove(tagster);
+	}
+}
+
+var tagsters = [];
+var tagsterCount = 0;
+var tagsterNames = ["Allen", "Marc", "Angelo", "Frederique", "Pasquale", "Guillermo", "Giuseppe", "Lorraine", "Hans", "Alberto", "Yolanda", "Rita", "Norman", "Glen", "Tina", "Gertrude", "Olga", "Pacman", "Helena", "Gwenda", "Astrud", "Astrid", "Norma", "Cool Phil", "The Alamo", "Patricia", "Edgardo", "Bartholomew"];
+
+function addNewTagster(){
+	let tagsterId = tagsterCount++;
+	let tagsterName = tagsterNames[Math.floor(Math.random() * tagsterNames.length)];
+	players[tagsterId] = {
+		name: tagsterName,
+		x: Math.floor(Math.random() * 600)+100,
+		y: Math.floor(Math.random() * 600)+100,
+		it: (tagsterCount == 1)
+	};
+	keys[tagsterId] = [];
+	collisions[tagsterId] = [];
+	tagsters.push(tagsterId);
 }
 
 //Function which contains the actions to be taken by the bots each tick.
 var botActions = function(){};
 
-//Adds bots to the game
-function addBots(){
+//Adds verticalBot and horizontalBot
+function addOldBots(){
 	players = {
 		"h": {
 			name: "horizontalBot",
 			x: 200,
 			y: 400,
-			it: false
+			it: true
 		},
 		"v": {
 			name: "verticalBot",
@@ -256,19 +278,24 @@ function addBots(){
 			y: 200,
 			it: false
 		},
-		"t": {
-			name: "The Tagster",
-			x: 400,
-			y: 400,
-			it: true
-		}
 	};
-	collisions = {"h": [], "v": [], "t": []};
-	keys = {"h": [], "v": [], "t": []};
+	collisions = {"h": [], "v": []};
+	keys = {"h": [], "v": []};
+
 	botActions = function(){
 		horizontalBotMove();
 		verticalBotMove();
-		tagsterMove();
+	};
+}
+
+//Adds bots to the game
+function addBots(){
+	for(let i = 0; i < 10; i++){
+		addNewTagster();
+	}
+
+	botActions = function(){
+		tagsterActions();
 	};
 }
 
