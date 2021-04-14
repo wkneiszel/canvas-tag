@@ -103,6 +103,8 @@ function calculateCollisions(){
 							console.log("Tag, you're it!");
 							players[player1].it = !players[player1].it;
 							players[player2].it = !players[player2].it;
+							taggedBy[player1] = player2;
+							taggedBy[player2] = player1;
 
 							//Update the players to the client
 							io.emit("updatePlayer", {
@@ -167,6 +169,7 @@ function verticalBotMove(){
 	});
 }
 
+var taggedBy = [];
 //Calculates the next move of any tagster (bots that chase and flee)
 function tagsterMove(socketId){
 	let closestPlayerDistance = 1000;
@@ -175,7 +178,7 @@ function tagsterMove(socketId){
 
 	if(players[socketId].it){	//Chase
 		for(let player of Object.keys(players)){
-			if(player == socketId){
+			if(player == socketId || player == taggedBy[socketId]){
 				continue;	
 			}
 
@@ -185,7 +188,7 @@ function tagsterMove(socketId){
 			
 			//Change selection of closest player
 			//One thing is that the player you're chasing can't be overlapping with you, or else you will not be able to tag them
-			if(distanceToPlayer < closestPlayerDistance && distanceToPlayer > 43){
+			if(distanceToPlayer < closestPlayerDistance && distanceToPlayer > 40){
 				closestPlayerDistance = distanceToPlayer;
 
 				//Calculate vector components for motion
@@ -266,6 +269,7 @@ function addNewTagster(){
 	};
 	keys[tagsterId] = [];
 	collisions[tagsterId] = [];
+	taggedBy[tagsterId] = "";
 	tagsters.push(tagsterId);
 }
 
@@ -299,7 +303,7 @@ function addOldBots(){
 
 //Adds bots to the game
 function addBots(){
-	for(let i = 0; i < 10; i++){
+	for(let i = 0; i < 20; i++){
 		addNewTagster();
 	}
 
@@ -334,6 +338,7 @@ io.on("connection", function(socket) {
 		//Add the new connection to keys, collisions, and players
 		keys[socket.id] = [];
 		collisions[socket.id] = [];
+		taggedBy[socket.id] = "";
 		players[socket.id] = {
 			name: dataFromClient.playerName,
 			x: Math.floor(Math.random() * 600)+100,
