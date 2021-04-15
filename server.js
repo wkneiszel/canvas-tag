@@ -172,6 +172,11 @@ function verticalBotMove(){
 var taggedBy = [];
 //Calculates the next move of any tagster (bots that chase and flee)
 function tagsterMove(socketId){
+	//Hmmm... 
+	if(!players[socketId]){
+		return
+	}
+
 	let closestPlayerDistance = 1000;
 	let dx = 0;
 	let dy = 0;
@@ -255,6 +260,10 @@ var tagsterNames = ["Allen", "Marc", "Angelo", "Frederique", "Pasquale", "Guille
 					"Tao", "Hitomi", "Kyoko", "Chang", "Xiuying", "Asuka", "Hikari", "Sedol"];
 
 function addNewTagster(){
+	//Can't have too many tagsters. Slows us down
+	if(tagsters.length >= 20)
+		return;
+
 	let tagsterId = tagsterCount++;
 	let tagsterName = tagsterNames[Math.floor(Math.random() * tagsterNames.length)];
 	tagsterDirections[tagsterId] = {
@@ -271,6 +280,7 @@ function addNewTagster(){
 	collisions[tagsterId] = [];
 	taggedBy[tagsterId] = "";
 	tagsters.push(tagsterId);
+	io.emit("allPlayers", players);
 }
 
 //Function which contains the actions to be taken by the bots each tick.
@@ -303,7 +313,7 @@ function addOldBots(){
 
 //Adds bots to the game
 function addBots(){
-	for(let i = 0; i < 20; i++){
+	for(let i = 0; i < 10; i++){
 		addNewTagster();
 	}
 
@@ -364,6 +374,41 @@ io.on("connection", function(socket) {
 		keys[socket.id] = dataFromClient;
 	});
 
+	socket.on("newTagster", function(dataFromClient){
+		addNewTagster();
+		console.log(tagsters);
+	});
+
+	socket.on("removeTagster", function(tagsterId){
+		//Oops, this is not a Tagster, don't remove them
+		if(!tagsterDirections[tagsterId]){
+			return;
+		}
+
+		let theyWereIt = false;
+		if(players[tagsterId].it){
+			theyWereIt = true;
+		}
+
+		delete players[tagsterId];
+		tagsters.splice(tagsters.indexOf(tagsterId), 1)
+		delete keys[tagsterId];
+		delete collisions[tagsterId];
+		delete taggedBy[tagsterId];
+		delete tagsterDirections[tagsterId];
+
+		if(theyWereIt){
+			//Assign it to a random player. Code based on https://stackoverflow.com/questions/2532218/pick-random-property-from-a-javascript-object
+			var indices = Object.keys(players);
+			var newIt = indices[indices.length * Math.random() << 0];
+			console.log(players[newIt].name + " is it now.");
+			players[newIt].it = true;
+		}
+
+		//Update to all players
+		io.emit("allPlayers", players);
+	});
+
 	//When a player leaves, we need to tell everyone
 	//Also clears out entries for that player in players, keys, and collisions object
 	socket.on("disconnect", function() {
@@ -384,6 +429,7 @@ io.on("connection", function(socket) {
 		delete players[socket.id];
 		delete keys[socket.id];
 		delete collisions[socket.id];
+		delete taggedBy[socket.id];
 
 		//If the last player disconnects, nobody is left to make it
 		if(Object.keys(players).length == 0) {
@@ -400,7 +446,7 @@ io.on("connection", function(socket) {
 		}
 
 		//Need to emit all players to ensure that clients update who is it. 
-		io.emit("allPlayers", players)
+		io.emit("allPlayers", players);
 	});
 });
 

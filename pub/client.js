@@ -101,6 +101,14 @@ if (isCanvasSupported()) {
 			//We need to keep track of our socket id so we can display the client's character's name in red
 			setId(id){
 				this.myId = id;
+			},
+
+			newTagster(){
+				socket.emit("newTagster");
+			},
+
+			removeTagster(tagsterId){
+				socket.emit("removeTagster", tagsterId);
 			}
 		},
 		computed: {

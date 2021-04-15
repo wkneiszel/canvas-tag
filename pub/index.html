@@ -17,8 +17,9 @@
 			<div id="playerList">
 				<h2>Players Online:</h2>
 				<ul>
-					<li v-for="player in playerList" key="player.name">{{player.name}}</li>
+					<li v-for="(player, playerIndex) in playerList" v-on:click="removeTagster(playerIndex)" key="player.name">{{player.name}}</li>
 				</ul>
+				<button v-on:click="newTagster">Add new Tagster</button>
 			</div>
 		</div>
 		<div v-bind:hidden="playerName != null">
