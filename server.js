@@ -239,7 +239,7 @@ function tagsterMove(socketId){
 	}
 }
 
-function tagsterActions(){
+var tagsterActions = function(){
 	for(let tagster of tagsters){
 		tagsterMove(tagster);
 	}
@@ -280,6 +280,13 @@ function addNewTagster(){
 	collisions[tagsterId] = [];
 	taggedBy[tagsterId] = "";
 	tagsters.push(tagsterId);
+
+	tagsterActions = function(){
+		for(let tagster of tagsters){
+			tagsterMove(tagster);
+		}
+	};
+
 	io.emit("allPlayers", players);
 }
 

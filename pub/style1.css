@@ -32,6 +32,15 @@ body{
     background-color: aliceblue;
 }
 
+.player:hover {
+    text-decoration: line-through;
+}
+
+#tagsterAdd {
+    margin-left: 1em;
+    margin-top: auto;
+}
+
 @media(max-width: 1000px) {
     body{
         margin-right: 0;
