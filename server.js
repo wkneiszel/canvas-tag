@@ -17,69 +17,23 @@ var keys = {};
 //players with whom they are in contact.
 var collisions = {};
 
-//Takes the array of keys pressed by the client and calculates their player's motion for this tick off of that
-//It is important to use the keypresses instead of simply getting the calculated movement or coordinates from the client
-//To prevent client-side tampering with the code in order to cheat by increasing speed or teleporting
-function playersMove(){
-	for(let player of Object.keys(players)){
-		let changed = false;
-		if (keys[player].includes(87) && keys[player].includes(68)){	//W D
-			players[player].y -= Math.sqrt(2)*5;
-			players[player].x += Math.sqrt(2)*5;
-			changed = true;
-		}
-		else if (keys[player].includes(83) && keys[player].includes(68)){	//S D
-			players[player].y += Math.sqrt(2)*5;
-			players[player].x += Math.sqrt(2)*5;
-			changed = true;
-		}
-		else if (keys[player].includes(83) && keys[player].includes(65)){	// A S
-			players[player].y += Math.sqrt(2)*5;
-			players[player].x -= Math.sqrt(2)*5;
-			changed = true;
-		}
-		else if (keys[player].includes(87) && keys[player].includes(65)){	//W A
-			players[player].y -= Math.sqrt(2)*5;
-			players[player].x -= Math.sqrt(2)*5;
-			changed = true;
-		}
-		else if(keys[player].includes(87)){	//W
-			players[player].y -= 10;
-			changed = true;
-		}
-		else if(keys[player].includes(65)){	//A
-			players[player].x -= 10;
-			changed = true;
-		}
-		else if(keys[player].includes(83)){	//S
-			players[player].y += 10;
-			changed = true;
-		}
-		else if(keys[player].includes(68)){	//D
-			players[player].x += 10;
-			changed = true;
-		}
-		if(changed){
-			//Screen wrap (PacMan style)
-			if(players[player].x > 850){
-				players[player].x = -50;
-			}
-			if(players[player].x < -50){
-				players[player].x = 850;
-			}
-			if(players[player].y > 850){
-				players[player].y = -50;
-			}
-			if(players[player].y < -50){
-				players[player].y = 850;
-			}
-			io.emit("updatePlayer", {
-				index: player,
-				data: players[player]
-			});
-		}
-	}
-}
+//Object which holds who previously tagged the player, used to prevent the Tagsters from "tagging back"
+var taggedBy = {};
+
+//Tagster-specific global variables, used to keep track of various data for Tagster behavior and creation
+var tagsters = [];
+var tagsterDirections = [];
+var tagsterCount = 0;
+var tagsterNames = ["Allen", "Marc", "Angelo", "Frederique", "Pasquale", "Guillermo", "Giuseppe", "Lorraine", "Hans", "Alberto", "Yolanda", 
+					"Rita", "Norman", "Glen", "Tina", "Gertrude", "Olga", "Pacman", "Helena", "Gwenda", "Astrud", "Astrid", "Norma", "Cool Phil", 
+					"The Alamo", "Patricia", "Edgardo", "Bartholomew", "Sven", "Larry", "Tony", "Glenda", "Gwen", "Justin", "Penelope", "Pete", 
+					"Earnest", "Jorge", "Madeline", "Ben", "Julieta", "Clark", "Bob", "Lucile", "Gordo", "Wallow", "Annie", "Jack", "Beth", "Chris",
+					"Danny", "Sandy", "Daisuke", "Ryugi", "Yoshi", "Paco", "Reina", "Logan", "Andy", "Stella", "Tangy", "Bugsly", "Cindy", "Mindy", 
+					"Scooter", "Jenny", "Brie", "Koko", "Dante", "Chester", "Chet", "Hilda", "Vlad", "Sergei", "Pavel", "Iakov", "Bjorn", "Tsubasa",
+					"Fritz", "Keiko", "Magnolia", "Daisy", "Rose", "Oliver", "Woody", "Lena", "Maximilian", "Felix", "Ahmed", "Esma", "Ida", "Bence",
+					"Mikael", "Noam", "Yosef", "Leonardo", "Ginevra", "Giulia", "Henrik", "Santiago", "Beatriz", "Viktoriya", "Artyom", "Hugo", "Mohamed",
+					"Mamadou", "Imene", "Fatima", "Mariam", "Enzo", "Davit", "Yusif", "Wei", "Amir-Ali", "Elie", "Rashid", "Honoka", "Odval", "Saoirse",
+					"Tao", "Hitomi", "Kyoko", "Chang", "Xiuying", "Asuka", "Hikari", "Sedol"];
 
 //Returns true is the two players are overlapping
 function detectCollision(player1, player2){
@@ -135,54 +89,91 @@ function calculateCollisions(){
 	}
 }
 
-//HorizontalBot code
-var right = true;
-function horizontalBotMove(){
-	if(right){
-		players["h"].x += 10;
+//Causes the player in question to wrap over to the other side of the screen if they are too far in any direction
+function screenWrap(socketId){
+	if(players[socketId].x > 850){
+		players[socketId].x = -50;
 	}
-	else{
-		players["h"].x -= 10;
+	if(players[socketId].x < -50){
+		players[socketId].x = 850;
 	}
-	if(players["h"].x > 700 || players["h"].x < 100)
-		right = !right;
-	io.emit("updatePlayer", {
-		index: "h",
-		data: players["h"]
-	});
+	if(players[socketId].y > 850){
+		players[socketId].y = -50;
+	}
+	if(players[socketId].y < -50){
+		players[socketId].y = 850;
+	}
 }
 
-//VerticalBot code
-var down = true;
-function verticalBotMove(){
-	if(down){
-		players["v"].y += 10;
+//Takes the array of keys pressed by the client and calculates their player's motion for this tick off of that
+//It is important to use the keypresses instead of simply getting the calculated movement or coordinates from the client
+//To prevent client-side tampering with the code in order to cheat by increasing speed or teleporting
+function playersMove(){
+	for(let player of Object.keys(players)){
+		let changed = false;
+		if (keys[player].includes(87) && keys[player].includes(68)){	//W D
+			players[player].y -= Math.sqrt(2)*5;
+			players[player].x += Math.sqrt(2)*5;
+			changed = true;
+		}
+		else if (keys[player].includes(83) && keys[player].includes(68)){	//S D
+			players[player].y += Math.sqrt(2)*5;
+			players[player].x += Math.sqrt(2)*5;
+			changed = true;
+		}
+		else if (keys[player].includes(83) && keys[player].includes(65)){	// A S
+			players[player].y += Math.sqrt(2)*5;
+			players[player].x -= Math.sqrt(2)*5;
+			changed = true;
+		}
+		else if (keys[player].includes(87) && keys[player].includes(65)){	//W A
+			players[player].y -= Math.sqrt(2)*5;
+			players[player].x -= Math.sqrt(2)*5;
+			changed = true;
+		}
+		else if(keys[player].includes(87)){	//W
+			players[player].y -= 10;
+			changed = true;
+		}
+		else if(keys[player].includes(65)){	//A
+			players[player].x -= 10;
+			changed = true;
+		}
+		else if(keys[player].includes(83)){	//S
+			players[player].y += 10;
+			changed = true;
+		}
+		else if(keys[player].includes(68)){	//D
+			players[player].x += 10;
+			changed = true;
+		}
+		if(changed){
+			//Screen wrap (PacMan style)
+			screenWrap(player);
+			io.emit("updatePlayer", {
+				index: player,
+				data: players[player]
+			});
+		}
 	}
-	else{
-		players["v"].y -= 10;
-	}
-	if(players["v"].y > 700 || players["v"].y < 100)
-		down = !down;
-	io.emit("updatePlayer", {
-		index: "v",
-		data: players["v"]
-	});
 }
 
-var taggedBy = [];
 //Calculates the next move of any tagster (bots that chase and flee)
 function tagsterMove(socketId){
-	//Hmmm... 
+	//I am not exactly sure why this is necessary, but it seems that without a guard clause to check if the tagster in question 
+	//still exists, the server crashes when a Tagster is removed.
 	if(!players[socketId]){
 		return
 	}
 
-	let closestPlayerDistance = 1000;
-	let dx = 0;
-	let dy = 0;
-
 	if(players[socketId].it){	//Chase
+		let closestPlayerDistance = 1000;
+		let dx = 0;
+		let dy = 0;
+
 		for(let player of Object.keys(players)){
+			//If the player in question is the Tagster themself or the player who just tagged them, we mustn't consider them
+			//the closest player
 			if(player == socketId || player == taggedBy[socketId]){
 				continue;	
 			}
@@ -212,25 +203,14 @@ function tagsterMove(socketId){
 	}
 
 	//Screen wrap (PacMan style)
-	if(players[socketId].x > 850){
-		players[socketId].x = -50;
-	}
-	if(players[socketId].x < -50){
-		players[socketId].x = 850;
-	}
-	if(players[socketId].y > 850){
-		players[socketId].y = -50;
-	}
-	if(players[socketId].y < -50){
-		players[socketId].y = 850;
-	}
+	screenWrap(socketId);
 
 	io.emit("updatePlayer", {
 		index: socketId,
 		data: players[socketId]
 	});
 
-	//Randomly change the direction of fleeing
+	//Randomly change the direction of fleeing for this tagster
 	if(Math.floor(Math.random() * 200) == 100){
 		tagsterDirections[socketId] = {
 			dx: (Math.random() * 10) - 5,
@@ -245,25 +225,11 @@ var tagsterActions = function(){
 	}
 }
 
-var tagsters = [];
-var tagsterDirections = [];
-var tagsterCount = 0;
-var tagsterNames = ["Allen", "Marc", "Angelo", "Frederique", "Pasquale", "Guillermo", "Giuseppe", "Lorraine", "Hans", "Alberto", "Yolanda", 
-					"Rita", "Norman", "Glen", "Tina", "Gertrude", "Olga", "Pacman", "Helena", "Gwenda", "Astrud", "Astrid", "Norma", "Cool Phil", 
-					"The Alamo", "Patricia", "Edgardo", "Bartholomew", "Sven", "Larry", "Tony", "Glenda", "Gwen", "Justin", "Penelope", "Pete", 
-					"Earnest", "Jorge", "Madeline", "Ben", "Julieta", "Clark", "Bob", "Lucile", "Gordo", "Wallow", "Annie", "Jack", "Beth", "Chris",
-					"Danny", "Sandy", "Daisuke", "Ryugi", "Yoshi", "Paco", "Reina", "Logan", "Andy", "Stella", "Tangy", "Bugsly", "Cindy", "Mindy", 
-					"Scooter", "Jenny", "Brie", "Koko", "Dante", "Chester", "Chet", "Hilda", "Vlad", "Sergei", "Pavel", "Iakov", "Bjorn", "Tsubasa",
-					"Fritz", "Keiko", "Magnolia", "Daisy", "Rose", "Oliver", "Woody", "Lena", "Maximilian", "Felix", "Ahmed", "Esma", "Ida", "Bence",
-					"Mikael", "Noam", "Yosef", "Leonardo", "Ginevra", "Giulia", "Henrik", "Santiago", "Beatriz", "Viktoriya", "Artyom", "Hugo", "Mohamed",
-					"Mamadou", "Imene", "Fatima", "Mariam", "Enzo", "Davit", "Yusif", "Wei", "Amir-Ali", "Elie", "Rashid", "Honoka", "Odval", "Saoirse",
-					"Tao", "Hitomi", "Kyoko", "Chang", "Xiuying", "Asuka", "Hikari", "Sedol"];
-
 function addNewTagster(){
 	//Can't have too many tagsters. Slows us down
 	if(tagsters.length >= 20)
 		return;
-
+	
 	let tagsterId = tagsterCount++;
 	let tagsterName = tagsterNames[Math.floor(Math.random() * tagsterNames.length)];
 	tagsterDirections[tagsterId] = {
@@ -281,42 +247,41 @@ function addNewTagster(){
 	taggedBy[tagsterId] = "";
 	tagsters.push(tagsterId);
 
-	tagsterActions = function(){
-		for(let tagster of tagsters){
-			tagsterMove(tagster);
-		}
-	};
+	io.emit("allPlayers", players);
+}
 
+function removeTagster(tagsterId){
+	//Oops, this is not a Tagster, don't remove them
+	if(!tagsterDirections[tagsterId]){
+		return;
+	}
+
+	let theyWereIt = false;
+	if(players[tagsterId].it){
+		theyWereIt = true;
+	}
+
+	delete players[tagsterId];
+	tagsters.splice(tagsters.indexOf(parseInt(tagsterId)), 1)
+	delete keys[tagsterId];
+	delete collisions[tagsterId];
+	delete taggedBy[tagsterId];
+	delete tagsterDirections[tagsterId];
+
+	if(theyWereIt){
+		//Assign it to a random player. Code based on https://stackoverflow.com/questions/2532218/pick-random-property-from-a-javascript-object
+		var indices = Object.keys(players);
+		var newIt = indices[indices.length * Math.random() << 0];
+		console.log(players[newIt].name + " is it now.");
+		players[newIt].it = true;
+	}
+
+	//Update to all players
 	io.emit("allPlayers", players);
 }
 
 //Function which contains the actions to be taken by the bots each tick.
 var botActions = function(){};
-
-//Adds verticalBot and horizontalBot
-function addOldBots(){
-	players = {
-		"h": {
-			name: "horizontalBot",
-			x: 200,
-			y: 400,
-			it: true
-		},
-		"v": {
-			name: "verticalBot",
-			x: 400,
-			y: 200,
-			it: false
-		},
-	};
-	collisions = {"h": [], "v": []};
-	keys = {"h": [], "v": []};
-
-	botActions = function(){
-		horizontalBotMove();
-		verticalBotMove();
-	};
-}
 
 //Adds bots to the game
 function addBots(){
@@ -383,37 +348,10 @@ io.on("connection", function(socket) {
 
 	socket.on("newTagster", function(dataFromClient){
 		addNewTagster();
-		console.log(tagsters);
 	});
 
 	socket.on("removeTagster", function(tagsterId){
-		//Oops, this is not a Tagster, don't remove them
-		if(!tagsterDirections[tagsterId]){
-			return;
-		}
-
-		let theyWereIt = false;
-		if(players[tagsterId].it){
-			theyWereIt = true;
-		}
-
-		delete players[tagsterId];
-		tagsters.splice(tagsters.indexOf(tagsterId), 1)
-		delete keys[tagsterId];
-		delete collisions[tagsterId];
-		delete taggedBy[tagsterId];
-		delete tagsterDirections[tagsterId];
-
-		if(theyWereIt){
-			//Assign it to a random player. Code based on https://stackoverflow.com/questions/2532218/pick-random-property-from-a-javascript-object
-			var indices = Object.keys(players);
-			var newIt = indices[indices.length * Math.random() << 0];
-			console.log(players[newIt].name + " is it now.");
-			players[newIt].it = true;
-		}
-
-		//Update to all players
-		io.emit("allPlayers", players);
+		removeTagster(tagsterId);
 	});
 
 	//When a player leaves, we need to tell everyone
