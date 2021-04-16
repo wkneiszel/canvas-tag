@@ -1,9 +1,9 @@
 canvas {
     border: 1px solid black;
     background-color: white;
+    float: left;
     /*Background from: https://www.thedirtbag.com/product/playground-wood-chips-bagged-1-cubic-yard/*/
     background-image: url("woodchips.jpg");
-    float: left;
 }
 
 #playerList{
@@ -19,15 +19,11 @@ h2{
 ul{
     margin-top: 0;
     margin-left: 1em;
+    text-align: left;
 }
 
 [v-cloak]{
     display: none;
-}
-
-#gameView{
-    padding-left: auto;
-    padding-right: auto;
 }
 
 body{

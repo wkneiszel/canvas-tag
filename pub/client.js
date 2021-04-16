@@ -119,6 +119,8 @@ if (isCanvasSupported()) {
 						return this.playerList[player].name;
 					}
 				}
+
+				//This should never happen, but it would be a server error if it did.
 				return "Nobody";
 			}
 		},
