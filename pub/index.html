@@ -9,19 +9,17 @@
 </head>
 <body>
 	<div id="main" v-cloak>
-		<div v-bind:hidden="playerName == null">
+		<div id="gameView" v-bind:hidden="playerName == null">
 			<h1>You are {{playerName}}. {{it}} is it.</h1>
 			<canvas id="playfield" width="800" height="800">
 				Sorry, your browser doesn't support canvas.
 			</canvas>
 			<div id="playerList">
 				<h2>Players Online:</h2>
+				<button v-on:click="newTagster" id="tagsterAdd">Add New Tagster</button>
 				<ul>
 					<li class="player" v-for="(player, playerIndex) in playerList" v-on:click="removeTagster(playerIndex)" key="player.name">{{player.name}}</li>
 				</ul>
-			</div>
-			<div>
-				<button v-on:click="newTagster" id="tagsterAdd">Add new Tagster</button>
 			</div>
 		</div>
 		<div v-bind:hidden="playerName != null">
@@ -31,7 +29,7 @@
 			<input name="playerName" type="text" v-model="tempPlayerName" v-on:keyup.enter="logIn" >
 			<button v-on:click="logIn" v-bind:disabled="tempPlayerName == null">Join Game</button>
 			<h3>What is Canvas Tag?</h3>
-			<p>Canvas Tag is a simple online game of the playground classic. You control your player with WASD. Moving off the screen causes you to loop around to the other side (Pacman style). The green player is "It", which means they need to tag someone. Canvas Tag is made using HTML5 canvas, Vue, Socket.io, NodeJS, and Express.</p>
+			<p>Canvas Tag is a simple online game of the playground classic. You control your player with WASD. Moving off the screen causes you to loop around to the other side (Pacman style). The green player is "It", which means they need to tag someone. There may be a number of "Tagsters": robotic characters who can be created or destroyed at the whim of any player. You can remove Tagsters by clicking their name on the player list, and you can add more (up to 20) by clicking the "Add New Tagster" button. Canvas Tag is made using HTML5 canvas, Vue, Socket.io, NodeJS, and Express.</p>
 			<h3>Who are the Tagsters?</h3>
 			<p>Once I had gotten the core game mechanics working, I started working on some bots to show off the game's functionality, even if I couldn't get anyone to play with me. The Tagsters are somewhat intelligent (in the loosest sense of the word) bots that roam the world of Canvas Tag. They know that when they are it, they must chase down the nearest player in sight to tag them, but I observed that making them flee the player currently it resulted in boring behavior (they would hide off the edge of the screen, if they had screen wrapping like the player, or else they would flock to the corners), so they instead move about at random when not it, periodically changing direction. I also determined that allowing the Tagsters to "tag back", so to speak, resulted in them getting stuck together, vibrating violently back and forth as they tagged each other back and forth repeatedly. So, I changed the behavior to make them remember who last tagged them and not pursue that player.</p>
 			<h3>Source code</h3>

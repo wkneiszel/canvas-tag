@@ -25,6 +25,11 @@ ul{
     display: none;
 }
 
+#gameView{
+    padding-left: auto;
+    padding-right: auto;
+}
+
 body{
     margin-left: 10%;
     margin-right: 10%;
@@ -37,8 +42,7 @@ body{
 }
 
 #tagsterAdd {
-    margin-left: 1em;
-    margin-top: auto;
+    margin-left: 2em;
 }
 
 @media(max-width: 1000px) {
