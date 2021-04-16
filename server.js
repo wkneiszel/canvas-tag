@@ -33,7 +33,8 @@ var tagsterNames = ["Allen", "Marc", "Angelo", "Frederique", "Pasquale", "Guille
 					"Fritz", "Keiko", "Magnolia", "Daisy", "Rose", "Oliver", "Woody", "Lena", "Maximilian", "Felix", "Ahmed", "Esma", "Ida", "Bence",
 					"Mikael", "Noam", "Yosef", "Leonardo", "Ginevra", "Giulia", "Henrik", "Santiago", "Beatriz", "Viktoriya", "Artyom", "Hugo", "Mohamed",
 					"Mamadou", "Imene", "Fatima", "Mariam", "Enzo", "Davit", "Yusif", "Wei", "Amir-Ali", "Elie", "Rashid", "Honoka", "Odval", "Saoirse",
-					"Tao", "Hitomi", "Kyoko", "Chang", "Xiuying", "Asuka", "Hikari", "Sedol"];
+					"Tao", "Hitomi", "Kyoko", "Chang", "Xiuying", "Asuka", "Hikari", "Sedol", "Dwayne", "Wayne", "Leo", "Dale", "Franz", "Elmo", "Lenny",
+					"Toby", "Danielle", "Herman", "Fernando", "Luisa", "Craig", "Greg", "Claire", "Eduardo", "Francesca", "Ed", "Eleanor", "Tori"];
 
 //Returns true is the two players are overlapping
 function detectCollision(player1, player2){
